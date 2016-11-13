@@ -16,8 +16,5 @@ macro(add_chipper_test name)
     )
 endmacro(add_chipper_test)
 
-include_directories(${CMAKE_SOURCE_DIR}/src)
-include_directories(${LIBLINEAR_ROOT})
-
 add_chipper_test(test_predict_cleavage)
 add_chipper_test(test_aa_props)

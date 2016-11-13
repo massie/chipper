@@ -24,6 +24,20 @@ if(temp)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pedantic")
 endif()
 
-include_directories(${clipper_SOURCE_DIR}/src)
+set(LIBLINEAR_ROOT ${CMAKE_SOURCE_DIR}/liblinear-2.1)
+include_directories(${LIBLINEAR_ROOT})
+set(LIBLINEAR_SRC
+    ${LIBLINEAR_ROOT}/linear.cpp
+	${LIBLINEAR_ROOT}/linear.h
+	${LIBLINEAR_ROOT}/tron.cpp
+	${LIBLINEAR_ROOT}/tron.h
+	${LIBLINEAR_ROOT}/blas/blas.h
+	${LIBLINEAR_ROOT}/blas/daxpy.c
+	${LIBLINEAR_ROOT}/blas/ddot.c
+	${LIBLINEAR_ROOT}/blas/dnrm2.c
+	${LIBLINEAR_ROOT}/blas/dscal.c)
+source_group(liblinear FILES ${LIBLINEAR_SRC})
+
 add_subdirectory(src)
+include_directories(src)
 add_subdirectory(tests)
