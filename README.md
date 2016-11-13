@@ -1,2 +1,2 @@
 # chipper
-Proteasomal cleavage detection
+Proteasomal cleavage prediction
