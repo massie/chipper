@@ -1,7 +1,5 @@
 # chipper
 
-[Travis build](https://travis-ci.org/massie/chipper) status:
-
-![](https://travis-ci.org/massie/chipper.svg?branch=master)
+[![Build Status](https://travis-ci.org/massie/chipper.svg?branch=master)](https://travis-ci.org/massie/chipper)
 
 Proteasomal cleavage prediction
