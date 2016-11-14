@@ -16,7 +16,7 @@ add_library(chipper-static STATIC ${CHIPPER_SRC} ${LIBLINEAR_SRC})
 target_link_libraries(chipper-static ${ZLIB_LIBRARIES})
 set_target_properties(chipper-static PROPERTIES OUTPUT_NAME chipper)
 
-add_executable(chipper chipper.c)
+add_executable(chipper chipper.c argtable3.c)
 target_link_libraries(chipper chipper-static)
 
 install (TARGETS chipper DESTINATION bin)

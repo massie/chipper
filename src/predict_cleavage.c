@@ -17,11 +17,10 @@
 } while (0)
 
 KSEQ_INIT(gzFile, gzread)
-
-gzFile gzFile_create(char *filename, char *mode)
+gzFile gzFile_create(const char *filename, char *mode)
 {
 	FILE *stream = NULL;
-	if (strcmp(filename, "-") == 0) {
+	if (filename == NULL) {
 		if (strcmp(mode, "r") == 0) {
 			stream = stdin;
 		} else if (strcmp(mode, "w") == 0) {
@@ -57,8 +56,9 @@ char prediction_to_char(double prediction)
 	return (char)((int)floor(prediction * 10) + 48);
 }
 
-int predict_cleavage(char *fasta_input, char *fastq_output, char *model_file,
-		     output_mode mode)
+int
+predict_cleavage(const char *fasta_input, const char *fastq_output,
+		 const char *model_file, int output_probabilities)
 {
 	const int sample_half_len = GENERATED_SAMPLE_LEN / 2;
 	gzFile input, output;
@@ -138,20 +138,18 @@ int predict_cleavage(char *fasta_input, char *fastq_output, char *model_file,
 					exit(EXIT_FAILURE);
 				}
 			}
-			prediction =
-			    predict_probability(data_model, features,
-						probabilities_true_false);
-			if (mode == yes_no) {
-				if (probabilities_true_false[0] >=
-				    BEST_CUTOFF_VALUE) {
-					preds[cut_index] = ':';
-				} else {
-					preds[cut_index] = '0';
-				}
-			} else {
+
+			if (output_probabilities) {
+				prediction =
+				    predict_probability(data_model, features,
+							probabilities_true_false);
 				preds[cut_index] =
 				    prediction_to_char(probabilities_true_false
 						       [0]);
+			} else {
+				prediction = predict(data_model, features);
+				preds[cut_index] =
+				    prediction_to_char(prediction);
 			}
 		}
 
