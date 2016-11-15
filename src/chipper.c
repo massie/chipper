@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
-#include "version.h"
+#include "project.h"
 #include "chipper.h"
 #include "argtable3.h"
 
@@ -11,13 +12,36 @@ void freetable_exit(void **argtable, int exitcode)
 	exit(exitcode);
 }
 
+const char *get_filename(struct arg_file *arg, const char *default_name)
+{
+	if (arg->count == 1) {
+		return arg->filename[0];
+	} else {
+		return default_name;
+	}
+}
+
+const char *get_default_model()
+{
+	const char *prefix = CHIPPER_INSTALL_PREFIX;
+	const char *suffix = "share/chipper/lr.model";
+	void *dest = malloc(strlen(prefix) + strlen(suffix) + 2);
+	sprintf(dest, "%s/%s", prefix, suffix);
+	return dest;
+}
+
 int main(int argc, char *argv[])
 {
 	struct arg_lit *help, *version, *probabilities;
 	struct arg_file *input, *output, *model;
+	struct arg_dbl *cutoff;
 	struct arg_end *end;
 	int nerrors;
 	char *progname = "chipper";
+	const char *default_model = get_default_model();
+	void *default_model_help =
+	    malloc(strlen(default_model) + strlen("(default:)") + 1);
+	sprintf(default_model_help, "(default:%s)", default_model);
 
 	void *argtable[] = {
 		help =
@@ -26,10 +50,13 @@ int main(int argc, char *argv[])
 				   "Display version info and exit"),
 		input = arg_filen("i", "input", "<fasta file>", 0, 1,
 				  "FASTA file with protein(s) (default: stdin)"),
-		model = arg_filen("m", "model", "<liblinear model file>", 1, 1,
-				  "Liblinear model file"),
+		model = arg_filen("m", "model", "<liblinear model>", 0, 1,
+				  default_model_help),
 		output = arg_filen("o", "output", "<fastq file>", 0, 1,
 				   "FASTQ file with predictions (default: stdout)"),
+		cutoff =
+		    arg_dbln("c", "cutoff", "<cutoff>", 0, 1,
+			     "Cutoff in range (0,1) for probability models (default: cutoff with highest MCC)"),
 		probabilities = arg_litn("p", "probs", 0, 1,
 					 "Output probabilities to FASTQ"),
 		end = arg_end(20),
@@ -60,7 +87,9 @@ int main(int argc, char *argv[])
 		freetable_exit(argtable, EXIT_FAILURE);
 	}
 
-	return predict_cleavage(input->count == 1 ? input->filename[0] : NULL,
-				output->count == 1 ? output->filename[0] : NULL,
-				model->filename[0], probabilities->count);
+	return predict_cleavage(get_filename(input, NULL),
+				get_filename(output, NULL),
+				get_filename(model, default_model),
+				probabilities->count,
+				cutoff->count == 1, cutoff->dval[0]);
 }

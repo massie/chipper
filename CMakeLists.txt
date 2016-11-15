@@ -41,3 +41,10 @@ source_group(liblinear FILES ${LIBLINEAR_SRC})
 add_subdirectory(src)
 include_directories(src)
 add_subdirectory(tests)
+
+install(DIRECTORY models/ DESTINATION share/chipper
+        PATTERN "models/*"
+        PERMISSIONS OWNER_EXECUTE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE WORLD_READ)
+
+install(FILES tests/test.fa DESTINATION share/chipper
+        PERMISSIONS OWNER_EXECUTE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE WORLD_READ)

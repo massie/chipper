@@ -4,7 +4,7 @@
 #include <zlib.h>
 #include <math.h>
 #include "kseq.h"
-#include "version.h"
+#include "project.h"
 #include "chipper.h"
 #include "linear.h"
 
@@ -58,7 +58,8 @@ char prediction_to_char(double prediction)
 
 int
 predict_cleavage(const char *fasta_input, const char *fastq_output,
-		 const char *model_file, int output_probabilities)
+		 const char *model_file, int output_probabilities,
+		 int cutoff_provided, double cutoff)
 {
 	const int sample_half_len = GENERATED_SAMPLE_LEN / 2;
 	gzFile input, output;
@@ -73,6 +74,18 @@ predict_cleavage(const char *fasta_input, const char *fastq_output,
 	double probabilities_true_false[2];
 	char amino_acid;
 	int rval;
+	int is_probability_model;
+
+	if (cutoff_provided) {
+		if (output_probabilities) {
+			fprintf(stderr,
+				"You provided a cutoff value=%f AND also requested probability outputs. Exiting.\n",
+				cutoff);
+			exit(EXIT_FAILURE);
+		}
+	} else {
+		cutoff = BEST_CUTOFF_VALUE;
+	}
 
 	/* Initialize feature vector */
 	init_features(features);
@@ -81,6 +94,13 @@ predict_cleavage(const char *fasta_input, const char *fastq_output,
 	data_model = load_model(model_file);
 	if (data_model == NULL) {
 		fprintf(stderr, "Unable to load model file '%s'\n", model_file);
+		exit(EXIT_FAILURE);
+	}
+
+	is_probability_model = check_probability_model(data_model);
+	if (!is_probability_model && output_probabilities) {
+		fprintf(stderr, "Model='%s' does not support probabilities.\n",
+			model_file);
 		exit(EXIT_FAILURE);
 	}
 
@@ -147,9 +167,21 @@ predict_cleavage(const char *fasta_input, const char *fastq_output,
 				    prediction_to_char(probabilities_true_false
 						       [0]);
 			} else {
-				prediction = predict(data_model, features);
+				if (is_probability_model) {
+					prediction = 0.0;
+					predict_probability(data_model,
+							    features,
+							    probabilities_true_false);
+					if (probabilities_true_false[0] >=
+					    cutoff) {
+						prediction = 1.0;
+					}
+				} else {
+					prediction =
+					    predict(data_model, features);
+				}
 				preds[cut_index] =
-				    prediction_to_char(prediction);
+				    prediction == 0.0 ? '-' : '+';
 			}
 		}
 

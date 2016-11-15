@@ -1,14 +1,14 @@
 # Pass the version info to a header file
 configure_file (
-  "${CMAKE_CURRENT_SOURCE_DIR}/version.h.in"
-  "${CMAKE_CURRENT_SOURCE_DIR}/version.h")
+  "${CMAKE_CURRENT_SOURCE_DIR}/project.h.in"
+  "${CMAKE_CURRENT_SOURCE_DIR}/project.h")
 
 include(FindZLIB required)
 
 set(CHIPPER_SRC
 	aa_props.c
 	predict_cleavage.c
-	version.h)
+	project.h)
 
 source_group(chipper FILES ${CHIPPER_SRC})
 
@@ -20,3 +20,5 @@ add_executable(chipper chipper.c argtable3.c)
 target_link_libraries(chipper chipper-static)
 
 install (TARGETS chipper DESTINATION bin)
+install (TARGETS chipper-static DESTINATION lib)
+install (FILES chipper.h DESTINATION include)

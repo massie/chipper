@@ -17,7 +17,7 @@ set(CPACK_GENERATOR "TGZ")
 set(CPACK_SOURCE_GENERATOR "TGZ")
 
 set(CPACK_SOURCE_IGNORE_FILES
-"/build/;/\\\\.gitignore;/\\\\.git;\\\\.travis.yml$;\\\\.svn;\\\\.swp$;\\\\.#;/#;.*~;${CPACK_SOURCE_IGNORE_FILES}")
+"/build/;/\\\\.gitignore;/\\\\.git;\\\\.ipynb_checkpoints;\\\\.travis.yml$;\\\\.svn;\\\\.swp$;\\\\.#;/#;.*~;${CPACK_SOURCE_IGNORE_FILES}")
 
 #message("CPACK_SOURCE_IGNORE_FILES = ${CPACK_SOURCE_IGNORE_FILES}")
 include(CPack)
