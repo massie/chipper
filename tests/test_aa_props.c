@@ -4,7 +4,7 @@
 
 int tests_run = 0;
 
-struct feature_node test_features[NUM_AA_PROPERTIES];
+struct feature_node test_features[NUM_AA_PROPERTIES + 1];
 
 static char *test_non_alpha()
 {

@@ -1,0 +1,26 @@
+NetChop 3.0 predictions using version C-term. Threshold 0.500000
+
+219 gi_121919_
+MSETAPAAPAAPAPAEKTPVKKKARKSAGAAKRKASGPPVSELITKAVAASKERSGVSLAALKKALAAAGYDVEKNNSRI
+S........S..S...S..SSSSS.S...S.SSS.....S..SS.SSSS..S......SSSS.S.S....S.S.S....S
+KLGLKSLVSKGTLVQTKGTGASGSFKLNKKAASGEAKPKAKKAGAAKAKKPAGAAKKPKKATGAATPKKSAKKTPKKAKK
+.S..S.S.....SS.SS.......S.S.SSS..........SS.S.SS.......SS......SS..SS..SS..SS..S
+PAAAAGAKKAKSPKKAKAAKPKKAPKSPAKAKAVKPKAAKPKTAKPKAAKPKKAAAKKK
+.S..S..SS....SS.SS.S..S..S...SSS..S.SS.S....SSSS....S..SSSS
+--------------------------------------
+
+Number of cleavage sites 87. Number of amino acids 219. Protein name gi_121919_
+
+--------------------------------------
+217 gi_138898_
+MDPNTVSSFQVDCFLWHVRKQVADQELGDAPFLDRLRRDQKSLRGRGSTLGLNIETATRVGKQIVERILKEESDEALKMT
+.....S..S.S...SS.S.S.S....S....SS.SS.S....SSS....S.S....S.S.....S.S.SS......S.S.
+MASAPASRYLTDMTIEEMSRDWFMLMPKQKVAGPLCIRMDQAIMDKNIILKANFSVIFDRLETLILLRAFTEAGAIVGEI
+S....S..SS..S.S..S......SS.S..S...S...S......S...SSS...SSS.SS..S.SSSS...S...S..S
+SPLPSLPGHTNEDVKNAIGVLIGGLEWNDNTVRVSKTLQRFAWRSSDENGRPPLTPK
+..S..S.......S......S...S.S....SSS.S.S.SS.SS.........S..S
+--------------------------------------
+
+Number of cleavage sites 74. Number of amino acids 217. Protein name gi_138898_
+
+--------------------------------------

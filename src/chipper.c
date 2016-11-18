@@ -5,6 +5,8 @@
 #include "project.h"
 #include "chipper.h"
 #include "argtable3.h"
+#include "output.h"
+#include "util.h"
 
 void freetable_exit(void **argtable, int exitcode)
 {
@@ -32,7 +34,7 @@ const char *get_default_model()
 
 int main(int argc, char *argv[])
 {
-	struct arg_lit *help, *version, *probabilities;
+	struct arg_lit *help, *version, *probabilities, *netchop, *nc_short;
 	struct arg_file *input, *output, *model;
 	struct arg_dbl *cutoff;
 	struct arg_end *end;
@@ -52,11 +54,14 @@ int main(int argc, char *argv[])
 				  "FASTA file with protein(s) (default: stdin)"),
 		model = arg_filen("m", "model", "<liblinear model>", 0, 1,
 				  default_model_help),
-		output = arg_filen("o", "output", "<fastq file>", 0, 1,
-				   "FASTQ file with predictions (default: stdout)"),
-		cutoff =
-		    arg_dbln("c", "cutoff", "<cutoff>", 0, 1,
-			     "Cutoff in range (0,1) for probability models (default: cutoff with highest MCC)"),
+		output = arg_filen("o", "output", "<file>", 0, 1,
+				   "File to write output (default: stdout)"),
+		netchop = arg_litn("n", "netchop", 0, 1,
+				   "Output NetChop 3.0 format instead of FASTQ"),
+		nc_short = arg_litn("s", "netchop_short", 0, 1,
+				    "Output NetChop 3.0 short format"),
+		cutoff = arg_dbln("c", "cutoff", "<cutoff>", 0, 1,
+				  "Cutoff in range (0,1) for probability models (default: cutoff with highest MCC)"),
 		probabilities = arg_litn("p", "probs", 0, 1,
 					 "Output probabilities to FASTQ"),
 		end = arg_end(20),
@@ -77,6 +82,9 @@ int main(int argc, char *argv[])
 		       CHIPPER_VERSION_PATCH);
 		printf("Best cutoff is %.2f (MCC= %.2f)\n",
 		       BEST_CUTOFF_VALUE, BEST_CUTOFF_MCC);
+		printf
+		    ("Trained with %d publicly available MHC class I ligands\n",
+		     TRAINING_SET_SIZE / 2);
 		freetable_exit(argtable, EXIT_SUCCESS);
 	}
 
@@ -89,7 +97,10 @@ int main(int argc, char *argv[])
 
 	return predict_cleavage(get_filename(input, NULL),
 				get_filename(output, NULL),
+				ARGUMENT_IS_SET(nc_short) ? NETCHOP_SHORT_OUTPUT
+				: ARGUMENT_IS_SET(netchop) ? NETCHOP_OUTPUT :
+				FASTQ_OUTPUT,
 				get_filename(model, default_model),
-				probabilities->count,
-				cutoff->count == 1, cutoff->dval[0]);
+				ARGUMENT_IS_SET(probabilities),
+				ARGUMENT_IS_SET(cutoff), cutoff->dval[0]);
 }

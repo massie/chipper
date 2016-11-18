@@ -3,42 +3,15 @@
 #include <string.h>
 #include <zlib.h>
 #include <math.h>
-#include "kseq.h"
+#include <assert.h>
 #include "project.h"
 #include "chipper.h"
 #include "linear.h"
-
-#define CHECK(x) do { \
-  int retval = (x);\
-  if (retval <= 0) {\
-    fprintf(stderr, "Runtime error: %s returned %d at %s:%d", #x, retval, __FILE__, __LINE__);\
-	exit(EXIT_FAILURE);\
-  }\
-} while (0)
+#include "output.h"
+#include "kseq.h"
+#include "util.h"
 
 KSEQ_INIT(gzFile, gzread)
-gzFile gzFile_create(const char *filename, char *mode)
-{
-	FILE *stream = NULL;
-	if (filename == NULL) {
-		if (strcmp(mode, "r") == 0) {
-			stream = stdin;
-		} else if (strcmp(mode, "w") == 0) {
-			stream = stdout;
-		} else {
-			fprintf(stderr, "Unknown file mode='%s'\n", mode);
-			exit(EXIT_FAILURE);
-		}
-	} else {
-		stream = fopen(filename, mode);
-		if (!stream) {
-			fprintf(stderr, "file:%s, error: %s", filename,
-				strerror(errno));
-			exit(EXIT_FAILURE);
-		}
-	}
-	return gzdopen(fileno(stream), mode);
-}
 
 void init_features(struct feature_node *features)
 {
@@ -51,40 +24,75 @@ void init_features(struct feature_node *features)
 	features[NUM_FEATURES].index = -1;
 }
 
-char prediction_to_char(double prediction)
+void
+peptide_to_features(const char *peptide, int peptide_len,
+		    struct feature_node *features, int features_len)
 {
-	return (char)((int)floor(prediction * 10) + 48);
+	int i, rval;
+	assert(features_len == peptide_len * NUM_AA_PROPERTIES + 1);
+	for (i = 0; i < peptide_len; i++) {
+		rval =
+		    get_aa_properties(peptide[i],
+				      features + i * NUM_AA_PROPERTIES);
+		if (rval == 0) {
+			fprintf(stderr, "Illegal amino acid='%c'", peptide[i]);
+			exit(EXIT_FAILURE);
+		}
+	}
+}
+
+struct chipper_output *new_chipper_output(const char *filename,
+					  chipper_output_format format,
+					  int is_probability_model,
+					  int output_probabilities,
+					  int cutoff_provided, double cutoff)
+{
+	double active_cutoff = cutoff_provided ? cutoff : BEST_CUTOFF_VALUE;
+
+	if (!is_probability_model && output_probabilities) {
+		fprintf(stderr,
+			"Model does not support outputting probabilities. Exiting.\n");
+		exit(EXIT_FAILURE);
+	}
+
+	switch (format) {
+	case FASTQ_OUTPUT:
+		return new_fastq_output(filename, output_probabilities,
+					active_cutoff);
+	case NETCHOP_OUTPUT:
+		return new_netchop_output(filename, active_cutoff, 0);
+	case NETCHOP_SHORT_OUTPUT:
+		return new_netchop_output(filename, active_cutoff, 1);
+	default:
+		fprintf(stderr, "Unknown format requested. Exiting.\n");
+		exit(EXIT_FAILURE);
+	}
 }
 
 int
-predict_cleavage(const char *fasta_input, const char *fastq_output,
-		 const char *model_file, int output_probabilities,
-		 int cutoff_provided, double cutoff)
+predict_cleavage(const char *fasta_filename, const char *output_filename,
+		 chipper_output_format output_format, const char *model_file,
+		 int output_probabilities, int cutoff_provided, double cutoff)
 {
-	const int sample_half_len = GENERATED_SAMPLE_LEN / 2;
-	gzFile input, output;
+	gzFile input;
 	kseq_t *seq;
-	int i, len, cut_index;
-	char *preds = NULL;
-	int preds_len = 0;
+	int i, len, sample_index;
 	struct model *data_model;
 	/* The feature vector has a terminator node '+1' */
 	struct feature_node features[NUM_FEATURES + 1];
-	double prediction;
+	double *predictions;
+	int predictions_len = 0;
 	double probabilities_true_false[2];
-	char amino_acid;
-	int rval;
 	int is_probability_model;
+	struct chipper_output *output = NULL;
+	int cleavage_site;
 
-	if (cutoff_provided) {
-		if (output_probabilities) {
-			fprintf(stderr,
-				"You provided a cutoff value=%f AND also requested probability outputs. Exiting.\n",
-				cutoff);
-			exit(EXIT_FAILURE);
-		}
-	} else {
-		cutoff = BEST_CUTOFF_VALUE;
+	predictions_len = 256;
+	predictions = malloc(predictions_len * sizeof(double));
+	if (predictions == NULL) {
+		fprintf(stderr,
+			"Unable to allocate memory for predictions. Exiting.\n");
+		exit(EXIT_FAILURE);
 	}
 
 	/* Initialize feature vector */
@@ -97,107 +105,61 @@ predict_cleavage(const char *fasta_input, const char *fastq_output,
 		exit(EXIT_FAILURE);
 	}
 
-	is_probability_model = check_probability_model(data_model);
-	if (!is_probability_model && output_probabilities) {
-		fprintf(stderr, "Model='%s' does not support probabilities.\n",
-			model_file);
-		exit(EXIT_FAILURE);
-	}
-
-	input = gzFile_create(fasta_input, "r");
+	input = gzFile_create(fasta_filename, "r");
 	seq = kseq_init(input);
-	output = gzFile_create(fastq_output, "w");
+	is_probability_model = check_probability_model(data_model);
+	output =
+	    new_chipper_output(output_filename, output_format,
+			       is_probability_model, output_probabilities,
+			       cutoff_provided, cutoff);
 
 	while ((len = kseq_read(seq)) >= 0) {
-		if (seq->qual.l) {
-			fprintf(stderr,
-				"Input file is a FASTQ file. Exiting.\nqual: %s\n",
-				seq->qual.s);
-			exit(EXIT_FAILURE);
-		}
 		if (strchr(seq->seq.s, 'U') || strchr(seq->seq.s, 'u')) {
 			fprintf(stderr,
 				"Ignoring protein with Selenocysteine. Not supported (yet).\n");
 			continue;
 		}
-		/* Echo back the name and comment */
-		CHECK(gzwrite(output, "@", 1));
-		CHECK(gzwrite(output, seq->name.s, seq->name.l));
-		if (seq->comment.l) {
-			CHECK(gzwrite(output, " ", 1));
-			CHECK(gzwrite(output, seq->comment.s, seq->comment.l));
-		}
-		CHECK(gzwrite(output, "\n", 1));
-
 		/* Make sure we have enough space for predictions */
-		if (preds_len < seq->seq.l) {
-			preds = realloc(preds, seq->seq.l);
-			if (preds == NULL) {
+		if (predictions_len < seq->seq.l) {
+			predictions =
+			    realloc(predictions, seq->seq.l * sizeof(double));
+			if (predictions == NULL) {
 				fprintf(stderr,
 					"Unable to allocate memory for prediction data. Exiting.\n");
 				exit(EXIT_FAILURE);
 			}
-			preds_len = seq->seq.l;
+			predictions_len = seq->seq.l;
 		}
 		/* Initialize all position to no information */
-		memset(preds, '!', seq->seq.l);
+		for (i = 0; i < seq->seq.l; i++) {
+			predictions[i] = NAN;
+		}
 
-		for (cut_index = sample_half_len;
-		     cut_index < seq->seq.l - sample_half_len; cut_index++) {
-			for (i = 0; i < GENERATED_SAMPLE_LEN; i++) {
-				amino_acid =
-				    seq->seq.s[cut_index + i - sample_half_len];
-				rval =
-				    get_aa_properties(amino_acid,
-						      features +
-						      i * NUM_AA_PROPERTIES);
-				if (rval == 0) {
-					fprintf(stderr,
-						"Illegal amino acid='%c'.\n",
-						amino_acid);
-					exit(EXIT_FAILURE);
-				}
-			}
-
-			if (output_probabilities) {
-				prediction =
-				    predict_probability(data_model, features,
-							probabilities_true_false);
-				preds[cut_index] =
-				    prediction_to_char(probabilities_true_false
-						       [0]);
+		for (sample_index = GENERATED_SAMPLE_LEN;
+		     sample_index <= seq->seq.l; sample_index++) {
+			peptide_to_features(seq->seq.s + sample_index -
+					    GENERATED_SAMPLE_LEN,
+					    GENERATED_SAMPLE_LEN, features,
+					    ARRAY_LEN(features));
+			cleavage_site =
+			    sample_index - GENERATED_SAMPLE_LEN / 2 - 1;
+			if (is_probability_model) {
+				predict_probability(data_model, features,
+						    probabilities_true_false);
+				predictions[cleavage_site] =
+				    probabilities_true_false[0];
 			} else {
-				if (is_probability_model) {
-					prediction = 0.0;
-					predict_probability(data_model,
-							    features,
-							    probabilities_true_false);
-					if (probabilities_true_false[0] >=
-					    cutoff) {
-						prediction = 1.0;
-					}
-				} else {
-					prediction =
-					    predict(data_model, features);
-				}
-				preds[cut_index] =
-				    prediction == 0.0 ? '-' : '+';
+				predictions[cleavage_site] =
+				    predict(data_model, features);
 			}
 		}
 
-		CHECK(gzwrite(output, seq->seq.s, seq->seq.l));
-		CHECK(gzwrite(output, "\n+", 2));
-		CHECK(gzwrite(output, seq->name.s, seq->name.l));
-		if (seq->comment.l) {
-			CHECK(gzwrite(output, " ", 1));
-			CHECK(gzwrite(output, seq->comment.s, seq->comment.l));
-		}
-		CHECK(gzwrite(output, "\n", 1));
-		CHECK(gzwrite(output, preds, seq->seq.l));
-		CHECK(gzwrite(output, "\n", 1));
+		output->write_record_cb(output, seq->name.s, seq->name.l,
+					seq->comment.s, seq->comment.l,
+					seq->seq.s, seq->seq.l, predictions);
 	}
+	output->close_cb(output);
 	kseq_destroy(seq);
-	gzclose(output);
 	gzclose(input);
 	return 0;
 }

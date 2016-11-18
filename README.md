@@ -3,6 +3,12 @@
 Current status of the [chipper build](https://travis-ci.org/massie/chipper)
 [![Build Status](https://travis-ci.org/massie/chipper.svg?branch=master)](https://travis-ci.org/massie/chipper)
 
+Chipper predicts cleavage sites of the human proteasome. See the biological information at the end of this readme for more details. Chipper takes FASTA/FASTQ files for input and outputs the predictions in FASTQ or NetChop 3.0 format.
+
+## Coordinates
+
+Amino acids have an amino group (the N-terminus side) and a carboxylic acid group (the C-terminus side). Chipper predicts whether or not the *C-terminus* at a specific location will be cleaved by proteasomes.
+
 ## Quick Install
 
 Chipper is comprised for a frontend, written in C, and a backend written in a [Jupyter notebook](/py/create_chipper_model.ipynb) in Python.
@@ -50,14 +56,15 @@ $ /tmp/example/bin/chipper -i /tmp/example/share/chipper/test.fa | gunzip
 @gi|121919|sp|P10412.2|H14_HUMAN RecName: Full=Histone H1.4; AltName: Full=Histone H1b; AltName: Full=Histone H1s-4
 MSETAPAAPAAPAPAEKTPVKKKARKSAGAAKRKASGPPVSELITKAVAASKERSGVSLAALKKALAAAGYDVEKNNSRIKLGLKSLVSKGTLVQTKGTGASGSFKLNKKAASGEAKPKAKKAGAAKAKKPAGAAKKPKKATGAATPKKSAKKTPKKAKKPAAAAGAKKAKSPKKAKAAKPKKAPKSPAKAKAVKPKAAKPKTAKPKAAKPKKAAAKKK
 +gi|121919|sp|P10412.2|H14_HUMAN RecName: Full=Histone H1.4; AltName: Full=Histone H1b; AltName: Full=Histone H1s-4
-!!!!!!!!!!++-++-+--++++++++----+++++----+--++++++++-+------++++++-++++-+-+-+---++++-+++++-+--+++++-------++++++++----+-+++++-++++++----+++++++++++--++-+++--++++++++-+-+++++--+++++++--+-++-+++++++++++-++++-++++!!!!!!!!!!
+!!!!!!!!!++-++-+--++++++++----+++++----+--++++++++-+------++++++-++++-+-+-+---++++-+++++-+--+++++-------++++++++----+-+++++-++++++----+++++++++++--++-+++--++++++++-+-+++++--+++++++--+-++-+++++++++++-++++-++++-!!!!!!!!!!
 @gi|138898|sp|P21431.1|NS1_I60A0 RecName: Full=Non-structural protein 1; Short=NS1; AltName: Full=NS1A
 MDPNTVSSFQVDCFLWHVRKQVADQELGDAPFLDRLRRDQKSLRGRGSTLGLNIETATRVGKQIVERILKEESDEALKMTMASAPASRYLTDMTIEEMSRDWFMLMPKQKVAGPLCIRMDQAIMDKNIILKANFSVIFDRLETLILLRAFTEAGAIVGEISPLPSLPGHTNEDVKNAIGVLIGGLEWNDNTVRVSKTLQRFAWRSSDENGRPPLTPK
 +gi|138898|sp|P21431.1|NS1_I60A0 RecName: Full=Non-structural protein 1; Short=NS1; AltName: Full=NS1A
-!!!!!!!!!!-+-++++++++-+-+--+-----+-++++----++-----+-+-+-++-++-+-++++++++-----++++++----++++-+--+-++---+++++-+++++++++++++--------++++-+-+++--+--+++++++--+--++--+--++-++-+-++-++--+-+++-++++----+++-+-+-++++++-!!!!!!!!!!
+!!!!!!!!!-+-++++++++-+-+--+-----+-++++----++-----+-+-+-++-++-+-++++++++-----++++++----++++-+--+-++---+++++-+++++++++++++--------++++-+-+++--+--+++++++--+--++--+--++-++-+-++-++--+-+++-++++----+++-+-+-++++++--!!!!!!!!!!
 ```
 
 To learn more about the chipper commandline, run `chipper -h`. To learn more about the output, continue reading.
+
 ## Chipper Backend
 
 You do **not** need to run the `chipper` backend in order to use `chipper`. The backend generates the models and some C code that the frontend uses. It's shared in the repo for transparency and to allow you to customize the backend. You can [view the jupyter notebook](/py/create_chipper_model.ipynb) in this repository including all output. 
@@ -92,13 +99,14 @@ The C-terminus of each epitope is considered a proteasome cleavage position. The
 To see the `chipper` commandline options, e.g.
 
 ```
-chipper -h
-Usage: chipper [-hvp] [-i <fasta file>] [-m <liblinear model>] [-o <fastq file>] [-c <cutoff>]
+Usage: chipper [-hvnsp] [-i <fasta file>] [-m <liblinear model>] [-o <file>] [-c <cutoff>]
  -h, --help                Display this help and exit
  -v, --version             Display version info and exit
  -i, --input=<fasta file>  FASTA file with protein(s) (default: stdin)
  -m, --model=<liblinear model> (default:/usr/local/share/chipper/lr.model)
- -o, --output=<fastq file> FASTQ file with predictions (default: stdout)
+ -o, --output=<file>       File to write output (default: stdout)
+ -n, --netchop             Output NetChop 3.0 format instead of FASTQ
+ -s, --netchop_short       Output NetChop 3.0 short format
  -c, --cutoff=<cutoff>     Cutoff in range (0,1) for probability models (default: cutoff with highest MCC)
  -p, --probs               Output probabilities to FASTQ
 ```
@@ -114,21 +122,22 @@ $ chipper -i /usr/local/share/chipper/test.fa | gunzip
 @gi|121919|sp|P10412.2|H14_HUMAN RecName: Full=Histone H1.4; AltName: Full=Histone H1b; AltName: Full=Histone H1s-4
 MSETAPAAPAAPAPAEKTPVKKKARKSAGAAKRKASGPPVSELITKAVAASKERSGVSLAALKKALAAAGYDVEKNNSRIKLGLKSLVSKGTLVQTKGTGASGSFKLNKKAASGEAKPKAKKAGAAKAKKPAGAAKKPKKATGAATPKKSAKKTPKKAKKPAAAAGAKKAKSPKKAKAAKPKKAPKSPAKAKAVKPKAAKPKTAKPKAAKPKKAAAKKK
 +gi|121919|sp|P10412.2|H14_HUMAN RecName: Full=Histone H1.4; AltName: Full=Histone H1b; AltName: Full=Histone H1s-4
-!!!!!!!!!!++-++-+--++++++++----+++++----+--++++++++-+------++++++-++++-+-+-+---++++-+++++-+--+++++-------++++++++----+-+++++-++++++----+++++++++++--++-+++--++++++++-+-+++++--+++++++--+-++-+++++++++++-++++-++++!!!!!!!!!!
+!!!!!!!!!++-++-+--++++++++----+++++----+--++++++++-+------++++++-++++-+-+-+---++++-+++++-+--+++++-------++++++++----+-+++++-++++++----+++++++++++--++-+++--++++++++-+-+++++--+++++++--+-++-+++++++++++-++++-++++-!!!!!!!!!!
 @gi|138898|sp|P21431.1|NS1_I60A0 RecName: Full=Non-structural protein 1; Short=NS1; AltName: Full=NS1A
 MDPNTVSSFQVDCFLWHVRKQVADQELGDAPFLDRLRRDQKSLRGRGSTLGLNIETATRVGKQIVERILKEESDEALKMTMASAPASRYLTDMTIEEMSRDWFMLMPKQKVAGPLCIRMDQAIMDKNIILKANFSVIFDRLETLILLRAFTEAGAIVGEISPLPSLPGHTNEDVKNAIGVLIGGLEWNDNTVRVSKTLQRFAWRSSDENGRPPLTPK
 +gi|138898|sp|P21431.1|NS1_I60A0 RecName: Full=Non-structural protein 1; Short=NS1; AltName: Full=NS1A
-!!!!!!!!!!-+-++++++++-+-+--+-----+-++++----++-----+-+-+-++-++-+-++++++++-----++++++----++++-+--+-++---+++++-+++++++++++++--------++++-+-+++--+--+++++++--+--++--+--++-++-+-++-++--+-+++-++++----+++-+-+-++++++-!!!!!!!!!!
+!!!!!!!!!-+-++++++++-+-+--+-----+-++++----++-----+-+-+-++-++-+-++++++++-----++++++----++++-+--+-++---+++++-+++++++++++++--------++++-+-+++--+--+++++++--+--++--+--++-++-+-++-++--+-+++-++++----+++-+-+-++++++--!!!!!!!!!!
 ```
 
-Since `chipper` needs ten flanking amino acids in order to predict cleavage points, the first and last ten positions of each protein has '!!!!!!!!!!`.
+Since `chipper` needs ten flanking amino acids in order to predict cleavage points, the first nine and last ten positions of each protein has '!`.
 
 To see the default cutoff that `chipper` used with the logistic regression model, see the version output, e.g.
 
 ```
 $ chipper -v
-chipper version: 0.1.0
+chipper version: 0.2.0
 Best cutoff is 0.35 (MCC= 0.62)
+Trained with 25655 publicly available MHC class I ligands
 ```
 
 #### Predict cleavage positions using the default LR model and a custom cutoff.
@@ -140,11 +149,11 @@ $ chipper -i /usr/local/share/chipper/test.fa -c 0.8 | gunzip
 @gi|121919|sp|P10412.2|H14_HUMAN RecName: Full=Histone H1.4; AltName: Full=Histone H1b; AltName: Full=Histone H1s-4
 MSETAPAAPAAPAPAEKTPVKKKARKSAGAAKRKASGPPVSELITKAVAASKERSGVSLAALKKALAAAGYDVEKNNSRIKLGLKSLVSKGTLVQTKGTGASGSFKLNKKAASGEAKPKAKKAGAAKAKKPAGAAKKPKKATGAATPKKSAKKTPKKAKKPAAAAGAKKAKSPKKAKAAKPKKAPKSPAKAKAVKPKAAKPKTAKPKAAKPKKAAAKKK
 +gi|121919|sp|P10412.2|H14_HUMAN RecName: Full=Histone H1.4; AltName: Full=Histone H1b; AltName: Full=Histone H1s-4
-!!!!!!!!!!-+--+------++++++-----++++-------++-+--++-+------+---+--+-+-----------++--+--++----++--+---------+-++++-------+-+----+-------+++--+--------+-++----+-++-------+--+-----++-+--+------+-+--+--+-+----+--+!!!!!!!!!!
+!!!!!!!!!-+--+------++++++-----++++-------++-+--++-+------+---+--+-+-----------++--+--++----++--+---------+-++++-------+-+----+-------+++--+--------+-++----+-++-------+--+-----++-+--+------+-+--+--+-+----+--+-!!!!!!!!!!
 @gi|138898|sp|P21431.1|NS1_I60A0 RecName: Full=Non-structural protein 1; Short=NS1; AltName: Full=NS1A
 MDPNTVSSFQVDCFLWHVRKQVADQELGDAPFLDRLRRDQKSLRGRGSTLGLNIETATRVGKQIVERILKEESDEALKMTMASAPASRYLTDMTIEEMSRDWFMLMPKQKVAGPLCIRMDQAIMDKNIILKANFSVIFDRLETLILLRAFTEAGAIVGEISPLPSLPGHTNEDVKNAIGVLIGGLEWNDNTVRVSKTLQRFAWRSSDENGRPPLTPK
 +gi|138898|sp|P21431.1|NS1_I60A0 RecName: Full=Non-structural protein 1; Short=NS1; AltName: Full=NS1A
-!!!!!!!!!!------+----------------+-++-+----++-----+-+-+--+---------++++-------++-++------++-------+------++-----+--+++++---------+++--+--++-----+--++++------+-----++-+--+------------+--+++-----+----+-+++++--!!!!!!!!!!
+!!!!!!!!!------+----------------+-++-+----++-----+-+-+--+---------++++-------++-++------++-------+------++-----+--+++++---------+++--+--++-----+--++++------+-----++-+--+------------+--+++-----+----+-+++++---!!!!!!!!!!
 ```
 
 When your compare the output to the previous (which used a cutoff of 0.35), you see less positions marked as cleavage positions. Using a higher probability reduces the number of false positives but also increases the number of false negatives.
@@ -158,11 +167,11 @@ $ chipper -i /usr/local/share/chipper/test.fa **-p** | gunzip
 @gi|121919|sp|P10412.2|H14_HUMAN RecName: Full=Histone H1.4; AltName: Full=Histone H1b; AltName: Full=Histone H1s-4
 MSETAPAAPAAPAPAEKTPVKKKARKSAGAAKRKASGPPVSELITKAVAASKERSGVSLAALKKALAAAGYDVEKNNSRIKLGLKSLVSKGTLVQTKGTGASGSFKLNKKAASGEAKPKAKKAGAAKAKKPAGAAKKPKKATGAATPKKSAKKTPKKAKKPAAAAGAKKAKSPKKAKAAKPKKAPKSPAKAKAVKPKAAKPKTAKPKAAKPKKAAAKKK
 +gi|121919|sp|P10412.2|H14_HUMAN RecName: Full=Histone H1.4; AltName: Full=Histone H1b; AltName: Full=Histone H1s-4
-!!!!!!!!!!5915815204798999910017999800004019949759938020020976787195960505060017885084399050089768111200066949998010040697961759776012389864957554014818962159698565162497480277398791281761349596793383954619579!!!!!!!!!!
+!!!!!!!!!59158152047989999100179998000040199497599380200209767871959605050600178850843990500897681112000669499980100406979617597760123898649575540148189621596985651624974802773987912817613495967933839546195790!!!!!!!!!!
 @gi|138898|sp|P21431.1|NS1_I60A0 RecName: Full=Non-structural protein 1; Short=NS1; AltName: Full=NS1A
 MDPNTVSSFQVDCFLWHVRKQVADQELGDAPFLDRLRRDQKSLRGRGSTLGLNIETATRVGKQIVERILKEESDEALKMTMASAPASRYLTDMTIEEMSRDWFMLMPKQKVAGPLCIRMDQAIMDKNIILKANFSVIFDRLETLILLRAFTEAGAIVGEISPLPSLPGHTNEDVKNAIGVLIGGLEWNDNTVRVSKTLQRFAWRSSDENGRPPLTPK
 +gi|138898|sp|P21431.1|NS1_I60A0 RecName: Full=Non-structural protein 1; Short=NS1; AltName: Full=NS1A
-!!!!!!!!!!25135696477073412600021929978003099220019180804917707056599894000025894980100469915307248010556883644794589989400200001899708168910400846998920400481172098095391741740172769049890000597250938999841!!!!!!!!!!
+!!!!!!!!!251356964770734126000219299780030992200191808049177070565998940000258949801004699153072480105568836447945899894002000018997081689104008469989204004811720980953917417401727690498900005972509389998411!!!!!!!!!!
 ```
 
 #### Predict cleavage positions using support vector classification (SVC)
@@ -172,20 +181,121 @@ $ chipper -i /usr/local/share/chipper/test.fa -m /usr/local/share/chipper/svc.mo
 @gi|121919|sp|P10412.2|H14_HUMAN RecName: Full=Histone H1.4; AltName: Full=Histone H1b; AltName: Full=Histone H1s-4
 MSETAPAAPAAPAPAEKTPVKKKARKSAGAAKRKASGPPVSELITKAVAASKERSGVSLAALKKALAAAGYDVEKNNSRIKLGLKSLVSKGTLVQTKGTGASGSFKLNKKAASGEAKPKAKKAGAAKAKKPAGAAKKPKKATGAATPKKSAKKTPKKAKKPAAAAGAKKAKSPKKAKAAKPKKAPKSPAKAKAVKPKAAKPKTAKPKAAKPKKAAAKKK
 +gi|121919|sp|P10412.2|H14_HUMAN RecName: Full=Histone H1.4; AltName: Full=Histone H1b; AltName: Full=Histone H1s-4
-!!!!!!!!!!++-++-+---+++++++----+++++----+--++-+++++-+------++++++-++++-+-+-+---++++-++-++-+--+++++-------++++++++----+-+++++-++++++----++++++++++---++-+++--++++++++-+-+++-+--++-++++--+-++--+++++++--+-++-+-++++!!!!!!!!!!
+!!!!!!!!!++-++-+---+++++++----+++++----+--++-+++++-+------++++++-++++-+-+-+---++++-++-++-+--+++++-------++++++++----+-+++++-++++++----++++++++++---++-+++--++++++++-+-+++-+--++-++++--+-++--+++++++--+-++-+-++++-!!!!!!!!!!
 @gi|138898|sp|P21431.1|NS1_I60A0 RecName: Full=Non-structural protein 1; Short=NS1; AltName: Full=NS1A
 MDPNTVSSFQVDCFLWHVRKQVADQELGDAPFLDRLRRDQKSLRGRGSTLGLNIETATRVGKQIVERILKEESDEALKMTMASAPASRYLTDMTIEEMSRDWFMLMPKQKVAGPLCIRMDQAIMDKNIILKANFSVIFDRLETLILLRAFTEAGAIVGEISPLPSLPGHTNEDVKNAIGVLIGGLEWNDNTVRVSKTLQRFAWRSSDENGRPPLTPK
 +gi|138898|sp|P21431.1|NS1_I60A0 RecName: Full=Non-structural protein 1; Short=NS1; AltName: Full=NS1A
-!!!!!!!!!!-+--+++++++-+----+-----+-++++----++-----+-+-+--+-++-+-++++++++-----+++-++-----+++-+--+-++---+++++-+--++++++++++--------++++-+-+++-----+++++++-----++--+--++-++-+-++-+---+-+++-++++----+++-+-+-+++++--!!!!!!!!!!
+!!!!!!!!!-+--+++++++-+----+-----+-++++----++-----+-+-+--+-++-+-++++++++-----+++-++-----+++-+--+-++---+++++-+--++++++++++--------++++-+-+++-----+++++++-----++--+--++-++-+-++-+---+-+++-++++----+++-+-+-+++++---!!!!!!!!!!
 ```
 
 The SVC model runs just as fast as the LR model but has slightly different sensitivity, specificity, and MCC metrics (see below).
 
 In fact, you can generate your own `liblinear` model and pass it on the command-line. 
 
+#### NetChop 3.0 formatted output
+
+You can use chipper as a drop-in replacement for NetChop in your pipeline. Chipper will write results in both the NetChop 3.0 long and short format, e.g.
+
+```
+$ chipper -i /usr/local/share/chipper/test.fa -n
+chipper 0.2.0 predictions using version C-term. Threshold 0.350000
+
+--------------------------------------
+ pos  AA  C      score      Ident
+--------------------------------------
+   1   M  ?    nan gi|121919|sp|P10412.2|H14_HUMAN
+   2   S  ?    nan gi|121919|sp|P10412.2|H14_HUMAN
+   3   E  ?    nan gi|121919|sp|P10412.2|H14_HUMAN
+   4   T  ?    nan gi|121919|sp|P10412.2|H14_HUMAN
+   5   A  ?    nan gi|121919|sp|P10412.2|H14_HUMAN
+   6   P  ?    nan gi|121919|sp|P10412.2|H14_HUMAN
+   7   A  ?    nan gi|121919|sp|P10412.2|H14_HUMAN
+   8   A  ?    nan gi|121919|sp|P10412.2|H14_HUMAN
+   9   P  ?    nan gi|121919|sp|P10412.2|H14_HUMAN
+  10   A  S    0.573356 gi|121919|sp|P10412.2|H14_HUMAN
+  11   A  S    0.925881 gi|121919|sp|P10412.2|H14_HUMAN
+  12   P  .    0.181648 gi|121919|sp|P10412.2|H14_HUMAN
+  13   A  S    0.534707 gi|121919|sp|P10412.2|H14_HUMAN
+  14   P  S    0.873750 gi|121919|sp|P10412.2|H14_HUMAN
+  15   A  .    0.129173 gi|121919|sp|P10412.2|H14_HUMAN
+  16   E  S    0.550686 gi|121919|sp|P10412.2|H14_HUMAN
+  17   K  .    0.218508 gi|121919|sp|P10412.2|H14_HUMAN
+  18   T  .    0.075059 gi|121919|sp|P10412.2|H14_HUMAN
+  19   P  S    0.419142 gi|121919|sp|P10412.2|H14_HUMAN
+  20   V  S    0.789228 gi|121919|sp|P10412.2|H14_HUMAN
+  21   K  S    0.969208 gi|121919|sp|P10412.2|H14_HUMAN
+  22   K  S    0.889635 gi|121919|sp|P10412.2|H14_HUMAN
+  23   K  S    0.981874 gi|121919|sp|P10412.2|H14_HUMAN
+  24   A  S    0.962042 gi|121919|sp|P10412.2|H14_HUMAN
+  25   R  S    0.963641 gi|121919|sp|P10412.2|H14_HUMAN
+  26   K  S    0.969662 gi|121919|sp|P10412.2|H14_HUMAN
+  27   S  .    0.135979 gi|121919|sp|P10412.2|H14_HUMAN
+  28   A  .    0.037417 gi|121919|sp|P10412.2|H14_HUMAN
+  29   G  .    0.023903 gi|121919|sp|P10412.2|H14_HUMAN
+  30   A  .    0.188232 gi|121919|sp|P10412.2|H14_HUMAN
+  31   A  S    0.749295 gi|121919|sp|P10412.2|H14_HUMAN
+...
+...
+...
+ 204   R  S    0.868376 gi|138898|sp|P21431.1|NS1_I60A0
+ 205   S  S    0.439963 gi|138898|sp|P21431.1|NS1_I60A0
+ 206   S  .    0.121788 gi|138898|sp|P21431.1|NS1_I60A0
+ 207   D  .    0.119843 gi|138898|sp|P21431.1|NS1_I60A0
+ 208   E  ?    nan gi|138898|sp|P21431.1|NS1_I60A0
+ 209   N  ?    nan gi|138898|sp|P21431.1|NS1_I60A0
+ 210   G  ?    nan gi|138898|sp|P21431.1|NS1_I60A0
+ 211   R  ?    nan gi|138898|sp|P21431.1|NS1_I60A0
+ 212   P  ?    nan gi|138898|sp|P21431.1|NS1_I60A0
+ 213   P  ?    nan gi|138898|sp|P21431.1|NS1_I60A0
+ 214   L  ?    nan gi|138898|sp|P21431.1|NS1_I60A0
+ 215   T  ?    nan gi|138898|sp|P21431.1|NS1_I60A0
+ 216   P  ?    nan gi|138898|sp|P21431.1|NS1_I60A0
+ 217   K  ?    nan gi|138898|sp|P21431.1|NS1_I60A0
+--------------------------------------
+
+Number of cleavage sites 115. Number of amino acids 217. Protein name gi|138898|sp|P21431.1|NS1_I60A0
+
+--------------------------------------
+```
+
+You can also output the NetChop short format, e.g.
+
+```
+$ chipper -i /usr/local/share/chipper/test.fa -s
+chipper 0.2.0 predictions using version C-term. Threshold 0.350000
+
+219 gi|121919|sp|P10412.2|H14_HUMAN
+MSETAPAAPAAPAPAEKTPVKKKARKSAGAAKRKASGPPVSELITKAVAASKERSGVSLAALKKALAAAGYDVEKNNSRI
+?????????SS.SS.S..SSSSSSSS....SSSSS....S..SSSSSSSS.S......SSSSSS.SSSS.S.S.S...SS
+KLGLKSLVSKGTLVQTKGTGASGSFKLNKKAASGEAKPKAKKAGAAKAKKPAGAAKKPKKATGAATPKKSAKKTPKKAKK
+SS.SSSSS.S..SSSSS.......SSSSSSSS....S.SSSSS.SSSSSS....SSSSSSSSSSS..SS.SSS..SSSSS
+PAAAAGAKKAKSPKKAKAAKPKKAPKSPAKAKAVKPKAAKPKTAKPKAAKPKKAAAKK
+SSS.S.SSSSS..SSSSSSS..S.SS.SSSSSSSSSSS.SSSS.SSSS.?????????
+--------------------------------------
+
+Number of cleavage sites 135. Number of amino acids 219. Protein name gi|121919|sp|P10412.2|H14_HUMAN
+
+--------------------------------------
+217 gi|138898|sp|P21431.1|NS1_I60A0
+MDPNTVSSFQVDCFLWHVRKQVADQELGDAPFLDRLRRDQKSLRGRGSTLGLNIETATRVGKQIVERILKEESDEALKMT
+?????????.S.SSSSSSSS.S.S..S.....S.SSSS....SS.....S.S.S.SS.SS.S.SSSSSSSS.....SSSS
+MASAPASRYLTDMTIEEMSRDWFMLMPKQKVAGPLCIRMDQAIMDKNIILKANFSVIFDRLETLILLRAFTEAGAIVGEI
+SS....SSSS.S..S.SS...SSSSS.SSSSSSSSSSSSS........SSSS.S.SSS..S..SSSSSSS..S..SS..S
+SPLPSLPGHTNEDVKNAIGVLIGGLEWNDNTVRVSKTLQRFAWRSSDENGRPPLTP
+..SS.SS.S.SS.SS..S.SSS.SSSS....SSS.S.S.SSSSSS..?????????
+--------------------------------------
+
+Number of cleavage sites 115. Number of amino acids 217. Protein name gi|138898|sp|P21431.1|NS1_I60A0
+
+--------------------------------------
+```
+
+Since chipper uses properties of the flanking amino acids, it does not make predictions at the ends of the peptides in the positions marked with '?'. This will change in future versions of chipper.
+
 ## Performance Comparison
 
 Chipper compares favorably against other proteasomal cleavage detection systems. Metrics reported in "[Predicting proteasomal cleavage sites: a comparison of available methods](http://intimm.oxfordjournals.org/content/15/7/781.full)" compared with chipper. Here's the performance using the same dataset using the same test dataset.
+
 
 | Method | Sensitivity (recall) | Specificity | MCC    |
 |--------|-------------|-------------|--------|

@@ -8,7 +8,9 @@ include(FindZLIB required)
 set(CHIPPER_SRC
 	aa_props.c
 	predict_cleavage.c
-	project.h)
+	output_fastq.c
+	output_netchop.c
+	util.c)
 
 source_group(chipper FILES ${CHIPPER_SRC})
 
