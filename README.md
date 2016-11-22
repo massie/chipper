@@ -297,14 +297,14 @@ Since chipper uses properties of the flanking amino acids, it does not make pred
 Chipper compares favorably against other proteasomal cleavage detection systems. Metrics reported in "[Predicting proteasomal cleavage sites: a comparison of available methods](http://intimm.oxfordjournals.org/content/15/7/781.full)" compared with chipper. Here's the performance using the same dataset using the same test dataset.
 
 
-| Method | Sensitivity (recall) | Specificity | MCC    |
+| Method | Sensitivity | Specificity | MCC    |
 |--------|-------------|-------------|--------|
 |[PAProC](http://www.paproc.de/)| 46.4 |64.7 |0.10 |
 |[FragPredict](http://www.mpiib-berlin.mpg.de/MAPPP/fragpredict.html) | 72.1 | 41.4 | 0.12 |
 |[NetChop](http://www.cbs.dtu.dk/services/NetChop/) 1.0 |34.4 |91.4 |0.31 |
 |[NetChop](http://www.cbs.dtu.dk/services/NetChop/) 2.0 |57.4 |76.4 |0.32 |
-|chipper (LR) | **77.4** | **85.2** | **0.62** |
-|chipper (SVC) | **78.2** | **79.0** | **0.57** |
+|chipper (LR) | **77.6** | **84.8** | **0.620** |
+|chipper (SVC) | **78.2** | **79.0** | **0.572** |
 
 The SVC model uses a linear kernel which makes interpreting the effect of the hydrophobic, steric, and electronic properties possible, while the performance of the logistic regression model has better specificity.
 
