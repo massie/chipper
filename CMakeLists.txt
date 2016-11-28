@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.6)
 project(chipper)
 set (CHIPPER_VERSION_MAJOR 0)
-set (CHIPPER_VERSION_MINOR 3)
+set (CHIPPER_VERSION_MINOR 4)
 set (CHIPPER_VERSION_PATCH 0)
 set (CHIPPER_VERSION "${CHIPPER_VERSION_MAJOR}.${CHIPPER_VERSION_MINOR}.${CHIPPER_VERSION_PATCH}")
 enable_testing()
@@ -48,3 +48,10 @@ install(DIRECTORY models/ DESTINATION share/chipper
 
 install(FILES tests/test.fa DESTINATION share/chipper
         PERMISSIONS OWNER_EXECUTE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE WORLD_READ)
+
+file(GLOB PRETTY_FILES RELATIVE ${CMAKE_SOURCE_DIR} src/*.[c,h] tests/*.[c,h])
+list(REMOVE_ITEM PRETTY_FILES src/argtable3.h src/argtable3.c src/kseq.h src/project.h tests/minunit.h)
+add_custom_target(pretty
+		COMMAND clang-format -style=llvm -sort-includes -i ${PRETTY_FILES}
+		WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+		VERBATIM)

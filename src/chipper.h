@@ -16,8 +16,8 @@
 
 int get_aa_properties(char aa, struct feature_node *features);
 int predict_cleavage(const char *fasta_input, const char *output,
-		     chipper_output_format format, const char *model_file,
-		     int output_probabilities, int cutoff_provided,
-		     double cutoff);
+                     chipper_output_format format, const char *model_file,
+                     int output_probabilities, int cutoff_provided,
+                     double cutoff);
 
 #endif
