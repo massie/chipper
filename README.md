@@ -299,10 +299,10 @@ Chipper compares favorably against other proteasomal cleavage detection systems.
 
 | Method | Sensitivity | Specificity | MCC    |
 |--------|-------------|-------------|--------|
-|[PAProC](http://www.paproc.de/)| 46.4 |64.7 |0.10 |
-|[FragPredict](http://www.mpiib-berlin.mpg.de/MAPPP/fragpredict.html) | 72.1 | 41.4 | 0.12 |
-|[NetChop](http://www.cbs.dtu.dk/services/NetChop/) 1.0 |34.4 |91.4 |0.31 |
-|[NetChop](http://www.cbs.dtu.dk/services/NetChop/) 2.0 |57.4 |76.4 |0.32 |
+|[PAProC](http://www.paproc.de/)| 45.6 | 30.0 | -0.25 |
+|[FragPredict](http://www.mpiib-berlin.mpg.de/MAPPP/fragpredict.html) | 83.5 | 16.5 | 0.00 |
+|[NetChop](http://www.cbs.dtu.dk/services/NetChop/) 1.0 | 39.8 | 46.3 | -0.14 |
+|[NetChop](http://www.cbs.dtu.dk/services/NetChop/) 2.0 | 73.6 | 42.4 | 0.16 |
 |chipper (LR) | **87.0** | **74.5** | **0.620** |
 |chipper (SVC) | **79.3** | **77.9** | **0.572** |
 
