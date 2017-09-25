@@ -11,7 +11,7 @@ Amino acids have an amino group (the N-terminus side) and a carboxylic acid grou
 
 ## Quick Install
 
-Chipper is comprised for a frontend, written in C, and a backend written in a [Jupyter notebook](/py/create_chipper_model.ipynb) in Python.
+Chipper is comprised of a frontend, written in C, and a backend written in a [Jupyter notebook](/py/create_chipper_model.ipynb) in Python.
 
 The frontend runs on MacOS and Linux and requires a BLAS library, e.g. [OpenBLAS](http://www.openblas.net/) and `cmake` to build. For MacOS brew users, you can satisfy these requirements by running `brew install cmake blas`. Chipper supports both the `clang` and `gcc` compilers.
 
